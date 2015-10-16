@@ -65,6 +65,9 @@ public class RangeCalculator {
             lines.forEach(System.out::println);
         } catch (IOException e) {
             e.printStackTrace();
+            if (toCast == ColorEntry.class){
+                colors.put("",new ColorEntry("",0));
+            }
         }
         if (lines != null) {
             readFromLines(map, lines.toArray(new String[lines.size()]), toCast);
@@ -114,6 +117,9 @@ public class RangeCalculator {
     public void printResult(){
         readRanges();
         readColors();
+        if (ranges.isEmpty()) {
+            System.out.println("Directory with ranges is empty or files have bad format");
+        }
         ranges.values().forEach(
                 range -> colors.values().forEach(
                         color -> System.out.println(range.merge(color).toString())));
