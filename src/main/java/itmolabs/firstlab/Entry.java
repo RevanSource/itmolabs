@@ -4,8 +4,8 @@ package itmolabs.firstlab;
  * Created by dart_revan on 13/10/15.
  */
 public class Entry {
-    protected String name;
-    protected Number price;
+    protected final String name;
+    protected final Number price;
 
     public Entry(String name, Number price) {
         this.name = name;

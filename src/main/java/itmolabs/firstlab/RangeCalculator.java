@@ -2,14 +2,12 @@ package itmolabs.firstlab;
 
 import com.sun.deploy.util.StringUtils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by dart_revan on 04/10/15.
@@ -43,6 +41,7 @@ public class RangeCalculator {
         try {
             Files.walk(filesWithRange)
                     .filter(Files::isRegularFile)
+                    .filter(filePath -> !filePath.endsWith("*.txt"))
                     .forEach(filePath -> {
                         readFromFileToMap(filePath, ranges, RangeEntry.class);
                     });
@@ -61,7 +60,6 @@ public class RangeCalculator {
         List<String> lines = null;
         try {
             lines = Files.readAllLines(file, Charset.defaultCharset());
-//            Files.lines(file,).toArray(String[]::new);
             lines.forEach(System.out::println);
         } catch (IOException e) {
             e.printStackTrace();
@@ -80,9 +78,9 @@ public class RangeCalculator {
         for (String line : lines) {
             Entry entry = readEntry(line, toCast);//get entry from
 
-            if (entry == null) continue;// TODO change to continue
+            if (entry == null) continue;
             if (!usedNames.contains(entry.getName())) {
-                Entry oldEntry = entries.get(entry.getName());//TODO nullpointer can be here
+                Entry oldEntry = entries.get(entry.getName());
                 if (oldEntry != null) {
                     entry = entry.merge(oldEntry);
                 }
@@ -117,13 +115,20 @@ public class RangeCalculator {
     public void printResult(){
         readRanges();
         readColors();
-        if (ranges.isEmpty()) {
-            System.out.println("Directory with ranges is empty or files have bad format");
-        }
-        ranges.values().forEach(
-                range -> colors.values().forEach(
-                        color -> System.out.println(range.merge(color).toString())));
+        try {
+            PrintStream ps = new PrintStream("result.txt");
 
+            System.setOut(ps);
+            if (ranges.isEmpty()) {
+                System.out.println("Directory with ranges is empty or files have bad format");
+            }
+
+            ranges.values().forEach(
+                    range -> colors.values().forEach(
+                            color -> System.out.println(range.merge(color).toString())));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args){

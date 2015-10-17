@@ -4,7 +4,7 @@ package itmolabs.firstlab;
  * Created by dart_revan on 08/10/15.
  */
 class RangeEntry extends Entry {
-    private int count;
+    private final int count;
 
     public RangeEntry(String productName, Number summaryPrice, int count) {
         super(productName, summaryPrice);
@@ -24,15 +24,6 @@ class RangeEntry extends Entry {
     public Number getAveragePrice(){
         return count > 0 ? price.doubleValue() / count : 0;
     }
-
-    /**
-     *
-     * @return
-     */
-    public String getFormattedString(){
-        return name + getAveragePrice();
-    }
-
 
     @Override
     public Entry merge(Entry mergedEntry) {
