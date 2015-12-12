@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
 public class HelloUDPClient {
-    private static final int PACKETSIZE = 1460;
+    private static final int PACKETSIZE = 30;
     private static final int TIMEOUT = 20000;
 
     private static InetAddress HOST;

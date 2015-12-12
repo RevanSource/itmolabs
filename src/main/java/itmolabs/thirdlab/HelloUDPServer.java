@@ -1,9 +1,6 @@
 package itmolabs.thirdlab;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.text.SimpleDateFormat;
@@ -12,11 +9,11 @@ import java.util.concurrent.ExecutorService;
 
 public class HelloUDPServer {
 
-    private final static int MAX_BUFFER_SIZE = 1460;
+    private final static int MAX_BUFFER_SIZE = 8192;
     private static int MAX_LISTENER_THREADS = 5;
     private final static String RESPONSE_PREFIX = "Hello, ";
     private final static SimpleDateFormat DateFormat = new SimpleDateFormat("yyyy-dd-MM HH:mm:ss.SSSZ");
-    private static Integer TIMEOUT = 1;
+    private static Integer TIMEOUT = 0;
     private final int mPort;
 
     private ExecutorService mPool;
@@ -38,8 +35,8 @@ public class HelloUDPServer {
 
     public void start() {
         try (DatagramSocket mSocket = new DatagramSocket(mPort)) {
-            mSocket.setReceiveBufferSize(6);
-            mSocket.setSendBufferSize(12);
+            mSocket.setReceiveBufferSize(MAX_BUFFER_SIZE);
+            mSocket.setSendBufferSize(MAX_BUFFER_SIZE);
             mSocket.setSoTimeout(0);
             for (int i = 0; i < MAX_LISTENER_THREADS; i++) {
                 new Thread(new Listener(mSocket)).start();
@@ -62,7 +59,7 @@ public class HelloUDPServer {
 
         private String readLn(DatagramPacket packet) throws IOException {
             socket.receive(packet);
-            return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(packet.getData()))).readLine();
+            return new String(packet.getData(), 0, packet.getLength());
         }
 
         private void writeLn(DatagramPacket packet, String string) throws IOException {
@@ -76,9 +73,9 @@ public class HelloUDPServer {
                 try {
                     DatagramPacket packet = new DatagramPacket(new byte[MAX_BUFFER_SIZE], MAX_BUFFER_SIZE);
                     String s = readLn(packet);
-                    System.out.println(DateFormat.format(new Date()) + " Received: " + s);
+                    System.out.println(DateFormat.format(new Date()) + " Received: " + s.length());
                     Thread.sleep(TIMEOUT * 1000);
-                    writeLn(packet, s);
+                    writeLn(packet, RESPONSE_PREFIX + s);
                     System.out.println(DateFormat.format(new Date()) + " Sent: " + s);
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
