@@ -43,15 +43,43 @@ public class ParallelServices implements IterativeParallelism {
 
     @Override
     public <T> boolean all(int threads, List<T> list, Predicate<T> predicate) {
-        return check(threads, list, predicate.negate(), true, false);
+        boolean initValue = true;
+        boolean exitValue = false;
+        final List<Boolean> finishedThreads = new ArrayList<>();
+        final List<Boolean> checkResults = new ArrayList<>();
+        IntStream.range(0, threads).forEach(threadNumber -> {
+            finishedThreads.add(false);
+            checkResults.add(initValue);
+            int fromIndex = threadNumber * list.size() / threads;
+            int toIndex = ((threadNumber + 1) * list.size() / threads);
+            List<T> portion = list.subList(fromIndex, toIndex);
+            new Thread(() -> {
+                for (T t : portion) {
+                    if (!predicate.test(t)) {
+                        checkResults.set(threadNumber, exitValue);
+                        break;
+                    }
+                }
+                finishedThreads.set(threadNumber, true);
+            }).start();
+        });
+        boolean check = checkResults.stream().anyMatch(b -> b.equals(exitValue));
+
+        while (!finishedThreads.stream().allMatch(b -> b.equals(true)) && !check) {
+            check = checkResults.stream().anyMatch(b -> b.equals(exitValue));
+            Thread.yield();
+        }
+        boolean result = initValue;
+        for (Boolean b : checkResults){
+            result = result && b;
+        }
+        return !checkResults.stream().anyMatch(b -> b.equals(exitValue));
     }
 
     @Override
     public <T> boolean any(int threads, List<T> list, Predicate<T> predicate) {
-        return check(threads, list, predicate, false, true);
-    }
-
-    private <T> boolean check(int threads, List<T> list, Predicate<T> predicate, boolean initValue, boolean exitValue) {
+        boolean initValue = false;
+        boolean exitValue = true;
         final List<Boolean> finishedThreads = new ArrayList<>();
         final List<Boolean> checkResults = new ArrayList<>();
         IntStream.range(0, threads).forEach(threadNumber -> {
@@ -70,15 +98,14 @@ public class ParallelServices implements IterativeParallelism {
                 finishedThreads.set(threadNumber, true);
             }).start();
         });
-        boolean check = checkResults.stream().anyMatch(b -> b.equals(exitValue));
+        boolean check = checkResults.stream().allMatch(b -> b.equals(initValue));
 
         while (!finishedThreads.stream().allMatch(b -> b.equals(true)) && !check) {
             check = checkResults.stream().anyMatch(b -> b.equals(exitValue));
             Thread.yield();
         }
-        return !check ? initValue : exitValue;
+        return  checkResults.stream().anyMatch(b -> b.equals(exitValue));
     }
-
 
     @Override
     public <T> List<T> filter(int threads, List<T> list, Predicate<T> predicate) {

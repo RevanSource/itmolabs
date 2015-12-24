@@ -1,8 +1,8 @@
 package itmolabs.firstlab;
 
-import com.sun.deploy.util.StringUtils;
-
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,8 +41,9 @@ public class RangeCalculator {
         try {
             Files.walk(filesWithRange)
                     .filter(Files::isRegularFile)
-                    .filter(filePath -> !filePath.endsWith("*.txt"))
+                    .filter(filePath -> filePath.toString().endsWith(".txt"))
                     .forEach(filePath -> {
+                        System.out.println(filePath);
                         readFromFileToMap(filePath, ranges, RangeEntry.class);
                     });
         } catch (IOException e) {
@@ -117,7 +118,6 @@ public class RangeCalculator {
         readColors();
         try {
             PrintStream ps = new PrintStream("result.txt");
-
             System.setOut(ps);
             if (ranges.isEmpty()) {
                 System.out.println("Directory with ranges is empty or files have bad format");
