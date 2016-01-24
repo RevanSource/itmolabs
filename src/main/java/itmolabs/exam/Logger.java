@@ -15,6 +15,9 @@ public class Logger{
     }
 
     public void error(Exception e) {
-        System.err.println(LocalDateTime.now() + " "+ e);
+        System.err.println(LocalDateTime.now() + " " + e);
+    }
+    public void error(String message) {
+        System.err.println(LocalDateTime.now() + " " + message);
     }
 }

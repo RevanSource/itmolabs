@@ -56,11 +56,13 @@ public class CalculationService {
         }
     }
 
+    //This method is ThreadSafe
     public String addWord(String word, String user) {
         boolean result = dictionary.add(word);
         String logInfo = result ? "User " + user + " has successfully added the word \"" + word + "\""
                 : "User " + user + " try to add the word \"" + word + "\", but it's already exists";
         if (result) {
+            //synchronized println
             dictionaryWriter.println(word);
         }
         return logInfo;

@@ -1,13 +1,15 @@
 package itmolabs.exam;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
     private static final Logger LOGGER = new Logger();
 
-    public static void main(String[] args)   {
+    public static void main(String[] args) {
         try {
             ServerSocket ss = new ServerSocket(8080);
             LOGGER.info("Server started. Port: " + ss.toString());
@@ -37,7 +39,7 @@ public class Server {
         public void run() {
             try {
                 String request = null;
-                while ((request = is.readUTF()) != null) {
+                while((request = readInput()) != null) {
                     LOGGER.info("receive: " + request);
                     String response = null;
                     //TODO make it easy
@@ -57,26 +59,28 @@ public class Server {
                         } else {
                             response = "Incorrect command, please try again";
                         }
-
                     }
                     LOGGER.info(response);
                     writeResponse(response);
                 }
+                LOGGER.info("Client processing finished");
             } catch (Exception e) {
                 LOGGER.error(e);
-            } finally {
-                try {
-                    s.close();
-                } catch (IOException e) {
-                    LOGGER.error(e);
-                }
             }
-            LOGGER.info("Client processing finished");
         }
 
         private void writeResponse(String s) throws IOException {
-            os.write(s.getBytes());
+            os.writeUTF(s);
             os.flush();
+        }
+
+        private String readInput() {
+            try {
+                return is.readUTF();
+            } catch (IOException e) {
+                LOGGER.info("InputStream was closed ");
+                return null;
+            }
         }
     }
 }
