@@ -162,6 +162,4 @@ public class ParallelServices implements IterativeParallelism {
         values.forEach(mappedList::addAll);
         return mappedList;
     }
-
-
 }

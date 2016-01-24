@@ -1,49 +1,48 @@
 package itmolabs.thirdlab;
 
 import java.net.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.IntStream;
 
 public class HelloUDPClient {
-    private static final int PACKETSIZE = 30;
-    private static final int TIMEOUT = 20000;
-
     private static InetAddress HOST;
     private static int PORT;
-    private static int THREAD_NUMBER;
-    private static int REQUESTS_PER_THREAD_NUMBER;
+    private static int THREADS_NUMBER;
+    private static int REQUESTS_NUMBER;
     private static String REQUEST_PREFIX;
 
-    public static void main(String args[]) throws UnknownHostException {
-        if (args.length != 5) throw new IllegalArgumentException("Please define host, port, request prefix, " +
-                "thread number, requests per thread number");
+    private static final int PACKETSIZE = 64;
+    private static final int TIMEOUT = 10000;
 
+    public static void main(String args[]) throws UnknownHostException {
         HOST = InetAddress.getByName(args[0]);
         PORT = Integer.parseInt(args[1]);
         REQUEST_PREFIX = args[2];
-        THREAD_NUMBER = Integer.parseInt(args[3]);
-        REQUESTS_PER_THREAD_NUMBER = Integer.parseInt(args[4]);
+        THREADS_NUMBER = Integer.parseInt(args[3]);
+        REQUESTS_NUMBER = Integer.parseInt(args[4]);
 
-        ExecutorService executorService = Executors.newFixedThreadPool(THREAD_NUMBER);
-        IntStream.of(THREAD_NUMBER).forEach(i -> executorService.execute(new Client(i)));
+        for (int i = 0; i < THREADS_NUMBER; i++){
+            new Thread(new Client(i)).start();
+        }
+//        while (true){
+//
+//        }
     }
 
     private static class Client implements Runnable {
-        final int personalNumber;
+        int numberAtThread;
 
-        Client(int personalNumber) {
-            this.personalNumber = personalNumber;
+        Client(int numberAtThread) {
+            System.out.println("init: " + numberAtThread);
+            this.numberAtThread = numberAtThread;
         }
 
         @Override
         public void run() {
             try (DatagramSocket socket = new DatagramSocket()) {
-                for (int personalNumberWithinThread = 0;
-                     personalNumberWithinThread < REQUESTS_PER_THREAD_NUMBER;
-                     personalNumberWithinThread++) {
+                for (int requestNumber = 0;
+                     requestNumber < REQUESTS_NUMBER;
+                     requestNumber++) {
 
-                    String request = REQUEST_PREFIX + personalNumber + "_" + personalNumberWithinThread;
+                    String request = REQUEST_PREFIX + numberAtThread + "_" + requestNumber;
                     byte[] data = request.getBytes();
                     DatagramPacket packet = new DatagramPacket(data, data.length, HOST, PORT);
                     System.out.println("send: " + request + " size: " + data.length);
@@ -55,8 +54,9 @@ public class HelloUDPClient {
                     } catch (SocketTimeoutException ste) {
                         ste.printStackTrace();
                         socket.send(packet);
+                        socket.receive(packet);
                     }
-                    System.out.println(new String(packet.getData()));
+                    System.out.println(new String(packet.getData(), 0, packet.getLength()));
                 }
             } catch (java.io.IOException e) {
                 e.printStackTrace();
