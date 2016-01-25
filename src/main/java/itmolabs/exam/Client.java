@@ -22,7 +22,7 @@ public class Client {
             String command = sc.nextLine();
             LOGGER.info("send command: " + command);
             String response = null;
-            if (command.startsWith("add ") || command.startsWith("check ") || command.startsWith("style ")) {
+            if (command.equals("ls") || command.startsWith("mv ") || command.startsWith("cd ") || command.startsWith("stat ")) {
                 response = sendRequest(socket, name + " " + command);
             } else {
                 LOGGER.info("Incorrect command, please try again");
